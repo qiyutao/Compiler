@@ -22,12 +22,14 @@ public class Parser {
 	}
 	
 	public void launch() {
+		sem.start();
 		prog();
 	}
 	
 	public void prog() {
 		funcName();
 		block();
+		sem.end();
 	}
 	
 	/* int main()*/
@@ -439,7 +441,7 @@ public class Parser {
 				if(word.equal(5)) {// match else
 					String oldLabel = sem.getLabelStr();
 					sem.getLabel();
-					sem.write("JMP "+sem.getLabelStr());
+					sem.write("\tJMP "+sem.getLabelStr());
 					sem.write(oldLabel+":");
 					getWord();
 					stmt();
@@ -507,127 +509,5 @@ public class Parser {
 			cur++;
 		}
 	}
-	
-	
-	
-	/*public static void main(String[] args) {
-		WordPair wordPair  = new WordPair(2, "int");
-		Vector<WordPair> words = new Vector<>();
-		words.add(wordPair);
-		wordPair = new WordPair(1, "main");
-		words.add(wordPair);
-		wordPair = new WordPair(26, "(");
-		words.add(wordPair);
-		wordPair = new WordPair(27, ")");
-		words.add(wordPair);
-		wordPair = new WordPair(30, "{");
-		words.add(wordPair);
-		wordPair = new WordPair(2, "int");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "a");
-		words.add(wordPair);
-		wordPair = new WordPair(34, ";");
-		words.add(wordPair);
-		wordPair = new WordPair(2, "int");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "b");
-		words.add(wordPair);
-		wordPair = new WordPair(34, ";");
-		words.add(wordPair);
-		wordPair = new WordPair(2, "int");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "c");
-		words.add(wordPair);
-		wordPair = new WordPair(34, ";");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "b");
-		words.add(wordPair);
-		wordPair = new WordPair(21, "=");
-		words.add(wordPair);
-		wordPair = new WordPair(20, "2");
-		words.add(wordPair);
-		wordPair = new WordPair(34, ";");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "c");
-		words.add(wordPair);
-		wordPair = new WordPair(21, "=");
-		words.add(wordPair);
-		wordPair = new WordPair(20, "3");
-		words.add(wordPair);
-		wordPair = new WordPair(34, ";");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "a");
-		words.add(wordPair);
-		wordPair = new WordPair(21, "=");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "b");
-		words.add(wordPair);
-		wordPair = new WordPair(22, "+");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "c");
-		words.add(wordPair);
-		wordPair = new WordPair(24, "*");
-		words.add(wordPair);
-		wordPair = new WordPair(20, "3");
-		words.add(wordPair);
-		wordPair = new WordPair(34, ";");
-		words.add(wordPair);
-		
-		wordPair = new WordPair(4, "if");
-		words.add(wordPair);
-		wordPair = new WordPair(26, "(");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "a");
-		words.add(wordPair);
-		wordPair = new WordPair(35, ">");
-		words.add(wordPair);
-		wordPair = new WordPair(20, "4");
-		words.add(wordPair);
-		wordPair = new WordPair(27, ")");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "c");
-		words.add(wordPair);
-		wordPair = new WordPair(21, "=");
-		words.add(wordPair);
-		wordPair = new WordPair(20, "3");
-		words.add(wordPair);
-		wordPair = new WordPair(34, ";");
-		words.add(wordPair);
-		
-		//while
-		wordPair = new WordPair(7, "while");
-		words.add(wordPair);
-		wordPair = new WordPair(26, "(");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "c");
-		words.add(wordPair);
-		wordPair = new WordPair(40, "!=");
-		words.add(wordPair);
-		wordPair = new WordPair(20, "0");
-		words.add(wordPair);
-		wordPair = new WordPair(27, ")");
-		words.add(wordPair);
-		wordPair = new WordPair(30, "{");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "c");
-		words.add(wordPair);
-		wordPair = new WordPair(21, "=");
-		words.add(wordPair);
-		wordPair = new WordPair(10, "c");
-		words.add(wordPair);
-		wordPair = new WordPair(23, "-");
-		words.add(wordPair);
-		wordPair = new WordPair(20, "1");
-		words.add(wordPair);
-		wordPair = new WordPair(34, ";");
-		words.add(wordPair);
-		wordPair = new WordPair(31, "}");
-		words.add(wordPair);
-		
-		
-		wordPair = new WordPair(31, "}");
-		words.add(wordPair);
-		Parser p = new Parser(words);
-		p.launch();
-	}*/
+
 }

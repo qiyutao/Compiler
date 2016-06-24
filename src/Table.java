@@ -3,16 +3,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class Table {
-	private HashMap<String , Integer> map = null;
-	
+	private HashMap<String, Integer> map = null;
+
 	public Table() {
 		map = new HashMap<String, Integer>();
-		
+
 		this.createTable();
 	}
-	
+
 	private void createTable() {
 		map.put("main", 1);
 		map.put("int", 2);
@@ -21,7 +20,7 @@ public class Table {
 		map.put("else", 5);
 		map.put("for", 6);
 		map.put("while", 7);
-		map.put("ID",10);
+		map.put("ID", 10);
 		map.put("NUM", 20);
 		map.put("=", 21);
 		map.put("+", 22);
@@ -45,9 +44,9 @@ public class Table {
 		map.put("!=", 40);
 		map.put("'\0'", 1000);
 		map.put("ERROR", -1);
-		
+
 	}
-	
+
 	public HashMap<String, Integer> getMap() {
 		return map;
 	}
