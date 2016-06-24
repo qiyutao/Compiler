@@ -1,11 +1,13 @@
 import java.awt.Window.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
 public class Parser {
 	private WordPair word = null;
 	private Vector<WordPair> words = null;
+	private Semantic sem = null;
 	private int cur;
 	private int line;
 	private int oldLine;
@@ -16,6 +18,7 @@ public class Parser {
 		cur = 1;
 		line = words.get(0).getKey();
 		oldLine = line;
+		sem = new Semantic();
 	}
 	
 	public void launch() {
@@ -85,10 +88,10 @@ public class Parser {
  	public void decls1() {
  		getWord();
  		if(word.equal(2)||word.equal(3)) {
- 			decl();
+ 			decl(word.getKey());
  			decls1();
  		}
- 		//fellow(decls1)=[ if while id  { }
+ 		//follow(decls1)=[ if while id  { }
  		else if(word.equal(28)||word.equal(4)||word.equal(31)||
  				word.equal(7)||word.equal(10)||word.equal(30)) {
  			curBack();
@@ -99,11 +102,18 @@ public class Parser {
  		
  	}
  	
- 	public void decl() {
+ 	public void decl(int i) {
  		type();
+ 		String type = null;
+ 		if(i==2) {
+ 			type = "int";
+ 		} else {
+ 			type = "char";
+ 		}
  		getWord();
  		if(word.equal(10)) {
  			//go
+ 			sem.typeTable(type, word.getValue());
  			/*is array ?*/
  			getWord();
  			if(word.equal(28)) {
@@ -158,7 +168,7 @@ public class Parser {
  			word.equal(7)||word.equal(10)||word.equal(30)) {
  			stmt();
  			stmts1();
- 		} else if(word.equal(31)) {//fellow(stmts) = }
+ 		} else if(word.equal(31)) {//follow(stmts) = }
  			//go
  		} else {
  			System.out.println("error:in line "+line+"     ->"+word.getValue());
@@ -174,13 +184,15 @@ public class Parser {
 		*/
  	public void stmt() {
  		if(word.equal(28)||word.equal(10)) {//first(LOC)=[||id
- 			loc();
+ 			String a = loc();
  			getWord();
  			if(word.equal(21)) {
+ 				String op = word.getValue();
  				getWord();
- 				equal();
+ 				String b = equal();
+ 				sem.generate(op, b, null, a);
  				getWord();
- 				if(word.equal(34)||word.equal(31)) { //fellow ; }
+ 				if(word.equal(34)||word.equal(31)) { //follow ; }
  					//go
  				} else {
  					System.out.println("error:in line "+line+"  need \";\"   ->"+word.getValue());
@@ -197,7 +209,7 @@ public class Parser {
  		} else if(word.equal(30)) {//first(block)
  			curBack();
  			block();
- 		} else if(word.equal(31)) {//fellow(stmts) = }
+ 		} else if(word.equal(31)) {//follow(stmts) = }
  			curBack();
  		} else {
  			System.out.println("error:in line "+line+"     ->"+word.getValue());
@@ -208,14 +220,19 @@ public class Parser {
  	/*LOC -> id LOC1
 	  LOC1 -> [BOOL] LOC1 | NULL
 	  */
- 	public void loc() {
+ 	public String loc() {
+ 		String id = null;
+ 		
  		if(word.equal(10)) {
+ 			id = word.getValue();
  			getWord();
  			loc1();
  		} else {
  			System.out.println("error:in line "+line+"  need id   ->"+word.getValue());
-			return;
+			
  		}
+ 		
+ 		return id;
  	}
  	
  	public void loc1() {
@@ -233,7 +250,7 @@ public class Parser {
  		} else if(word.equal(21)||word.equal(22)||word.equal(23)||
  				word.equal(24)||word.equal(25)||word.equal(35)||
  				word.equal(36)||word.equal(37)||word.equal(38)||
- 				word.equal(39)||word.equal(40)||word.equal(34)){//fellow(loc) = "= + - * / > < >= <= == != ;"
+ 				word.equal(39)||word.equal(40)||word.equal(34)){//follow(loc) = "= + - * / > < >= <= == != ;"
  			//go
  			curBack();
  		} else {
@@ -243,133 +260,148 @@ public class Parser {
  	}
  	
  	/* EQUAL -> REL EQUAL1*/
- 	public void equal() {
+ 	public String equal() {
  		if(word.equal(23)||word.equal(26)||
  		   word.equal(28)||word.equal(10)||word.equal(20)) { //first(equal) = - ( [  id num
- 			rel();
+ 			String a = rel();
  			//getWord();
- 			equal1();
+ 			return equal1(a);
  		} else {
  			System.out.println("error:in line "+line+"     ->"+word.getValue());
-			return;
+			return null;
  		}
  	}
  	
  	/* EQUAL1 -> == REL EQUAL1|NULL
  	 * 		  -> != REL EQUAL1 | NULL
  	 */
- 	public void equal1() {
+ 	public String equal1(String i) {
  		if(word.equal(39)||word.equal(40)) {
  			getWord();
- 			rel();
+ 			String a = rel();
  			
  			//getWord();
- 			equal1();
- 		} else if(word.equal(34)||word.equal(31)||word.equal(27)) {//fellow(equal) = ; } £©
+ 			return equal1(a);
+ 		} else if(word.equal(34)||word.equal(31)||word.equal(27)) {//follow(equal) = ; } £©
  			curBack();
+ 			return i;
  		} else {
  			System.out.println("error:in line "+line+"     ->"+word.getValue());
-			return;
+			return i;
  		}
  	}
  	
  	/*REL		->	EXPR  ROP  EXPR
 			    ->	EXPR
 	*/
- 	public void rel() {
- 		expr();
+ 	public String rel() {
+ 		String id = expr();
  		//getWord();
  		if(word.equal(35)||word.equal(37)||
  		   word.equal(36)||word.equal(38)) {//first(rop) = > < >= <=
- 			rop();
+ 			rop(id);
  			
- 		} else if(word.equal(34)||word.equal(31)||word.equal(27)||word.equal(39)||word.equal(40)) {//fellow(expr) = ; } £©== !=
+ 		} else if(word.equal(34)||word.equal(31)||word.equal(27)||word.equal(39)||word.equal(40)) {//follow(expr) = ; } £©== !=
  			//go
  		} else {
  			System.out.println("error:in line "+line+"     ->"+word.getValue());
-			return;
+			
  		}
+ 		return id;
  	}
  	
  	/* ROR	->	> | >= | < | <= */
- 	public void rop() {
+ 	public void rop(String i) {
+ 		String op = word.getValue();
  		getWord();
-		expr();
+		String op2 = expr();
+		sem.generate(op, i, op2, sem.getLabel());
  	}
  	
  	/* EXPR -> TERM EXPR1 */
- 	public void expr() {
- 		term();
+ 	public String expr() {
+ 		String i;
+ 		i = term();
  		//getWord();
- 		expr1();
+ 		return expr1(i);
  	}
  	
  	/* EXPR1 ->ADD TERM EXPR1|NULL */ 
- 	public void expr1() {
+ 	public String expr1(String i) {
+ 		String ret = null;
  		if(word.equal(22)||word.equal(23)) {
- 			add();
+ 			String op = word.getValue();
+ 			getWord();
+ 	 		String r = term();
+ 	 		ret = sem.getT();
+ 	 		sem.generate(op, i, r, ret);
+ 	 		if(!word.equal(34)) //patch
+ 	 			getWord();
+ 	 		ret = expr1(ret);
  		} else if(word.equal(34)||word.equal(31)||word.equal(38)||
  				  word.equal(35)||word.equal(37)||word.equal(36)||
- 	 		      word.equal(27)||word.equal(39)||word.equal(40)) {//fellow(expr) = ; } > | >= | < | <= £©!= ==
+ 	 		      word.equal(27)||word.equal(39)||word.equal(40)) {//follow(expr) = ; } > | >= | < | <= £©!= ==
  			//go
  			//curBack();
+ 			return i;
  		} else {
  			System.out.println("error:in line "+line+"  need \"+\" or \"-\"   ->"+word.getValue());
-			return;
+			
  		}
- 		
- 	}
- 	
- 	public void add() {
- 		getWord();
- 		term();
- 		if(!word.equal(34)) //patch
- 			getWord();
- 		expr1();
+ 		return ret;
  	}
  	
  	/* TERM -> UNARY TERM1 */
- 	public void term() {
+ 	public String term() {
+ 		String id = null;
  		if(word.equal(23)||word.equal(26)||
  	 	   word.equal(28)||word.equal(10)||word.equal(20)) { //first(equal) = - ( [  id num
-			unary();
+			String r =unary();
 			getWord();
-			term1();
+			id = term1(r);
 		} else {
 			System.out.println("error:in line "+line+"     ->" + word.getValue());
-			return;
+			
 		}
+ 		return id;
  	}
  	
  	/* TERM1 - >MUL UNARY TERM1 |NULL */
- 	public void term1() {
+ 	public String term1(String i) {
+ 		String id = null;
  		if(word.equal(24)||word.equal(25)) {
+ 			String op = word.getValue();
  			getWord();
- 			unary();
+ 			String op2 = unary();
+ 			id = sem.getT();
+ 			sem.generate(op, i, op2, id);
 			getWord();
-			term1();
+			id = term1(id);
  		} else if(word.equal(34)||word.equal(22)||word.equal(23)||word.equal(31)||
  				  word.equal(35)||word.equal(37)||word.equal(27)||word.equal(36)||
- 	 		      word.equal(38)||word.equal(39)||word.equal(40)) { //fellow £» + - } = > < >= <= £©!= ==
+ 	 		      word.equal(38)||word.equal(39)||word.equal(40)) { //follow £» + - } = > < >= <= £©!= ==
  			//go
+ 			return i;
  		} else {
  			System.out.println("error:in line "+line+"  need \"*\" or \"/\"   ->"+word.getValue());
-			return;
+			
  		}
+ 		return id;
  	}
  	
  	/*UNARY	 ->	-FACTOR
 			 ->	FACTOR
 	*/
- 	public void unary() {
- 		factor();
+ 	public String unary() {
+ 		return factor();
  	}
  	
  	/* FACTOR	->	(  equal )
 			->	LOC
 			->	num
 	*/
- 	public void factor() {
+ 	public String factor() {
+ 		String id = null;
  		if(word.equal(26)) {
  			getWord();
  			equal();
@@ -378,17 +410,20 @@ public class Parser {
  				//go
  			} else {
  				System.out.println("error:in line "+line+"  need \")\"   ->"+word.getValue());
- 				return;
+ 				
  			}
  		} else if(word.equal(28)||word.equal(10)) {
  			//getWord();
- 			loc();
+ 			id = loc();
+ 			
  		} else if(word.equal(20)) {
  			//go
+ 			id = word.getValue();
  		} else {
  			System.out.println("error:in line "+line+"     ->"+word.getValue());
-			return;
+			
  		}
+		return id;
  	}
  	
  	public void ifPross() {
@@ -402,11 +437,17 @@ public class Parser {
 				stmt();
 				getWord();
 				if(word.equal(5)) {// match else
+					String oldLabel = sem.getLabelStr();
+					sem.getLabel();
+					sem.write("JMP "+sem.getLabelStr());
+					sem.write(oldLabel+":");
 					getWord();
 					stmt();
+					sem.write(sem.getLabelStr()+":");
 				} else {
 					//go
 					cur--;
+					sem.outLabel();
 				}
 			} else {
 				System.out.println("error:in line "+line+"  need \")\"   ->" + word.getValue());
@@ -420,6 +461,8 @@ public class Parser {
  	
  	public void whilePross() {
  		getWord();
+ 		sem.getLabel();
+ 		String oldLabel = sem.outLabel();
  		if (word.equal(26)) {// match (
 			getWord();
 			equal();
@@ -428,6 +471,8 @@ public class Parser {
 				getWord();
 				stmt();
 				getWord();
+				sem.cmpWhile(oldLabel);
+				sem.outLabel();
 			} else {
 				System.out.println("error:in line "+line+"  need \")\"   ->" + word.getValue());
 				return;
@@ -462,6 +507,8 @@ public class Parser {
 			cur++;
 		}
 	}
+	
+	
 	
 	/*public static void main(String[] args) {
 		WordPair wordPair  = new WordPair(2, "int");
